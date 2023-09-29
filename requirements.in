@@ -2,3 +2,6 @@ pandas
 duckdb
 pytest
 pip-tools
+slack-sdk
+certifi
+python-dotenv

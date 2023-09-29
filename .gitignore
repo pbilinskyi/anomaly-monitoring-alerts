@@ -14,3 +14,4 @@ logs/log.txt
 .DS_Store
 *.docx
 _sandbox.py
+.env
