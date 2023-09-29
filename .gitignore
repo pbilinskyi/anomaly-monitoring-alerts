@@ -1,0 +1,16 @@
+# python files
+__pycache__/
+.pytest_cache/
+venv/
+
+# data
+*.db
+*.csv
+
+# logs
+logs/log.txt
+
+# other
+.DS_Store
+*.docx
+_sandbox.py
