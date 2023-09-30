@@ -4,20 +4,24 @@ This project is a simple anomaly monitoring system that detects anomalies in tra
 
 ## Getting Started
 
+### Prerequisites
+
+You have to provide the credentials in `.env` file:
+```bash
+SLACK_ALERT_BOT_TOKEN=
+SLACK_ALERT_CHANNEL_ID=
+PATH_TO_GOOGLE_JSON_CREDENTIALS=
+GOOGLE_SHEET_KEY=
+```
+
+### Installing
+
 First, clone the repository and install the requirements:
 
 ```bash
-git clone
-cd anomaly-monitoring
+git clone https://github.com/pbilinskyi/anomaly-monitoring-alerts.git
+cd anomaly-monitoring-alerts
 pip install -r requirements.txt
-```
-
-Second, make sure you have these data files available:
-```bash
-data/countries.csv
-data/orders.csv
-data/transactions.csv
-data/test_aggregate_data.csv
 ```
 
 Then, run the following command to initialize demo database with data:
@@ -26,20 +30,13 @@ Then, run the following command to initialize demo database with data:
 python init_db.py
 ```
 
-Finally, run the following command to perform anomaly detection and send notifications:
+### Running
+
+Run the following command to perform anomaly detection and send notifications:
 
 ```bash
 python main.py
 ```
-
-## Scheduling
-
-The anomaly monitoring checks are performed **every hour at 0th minute** via `cron`. Here's a content of cron file:
-
-```bash
-0 * * * * cd ~/path/to/your/anomaly-monitoring && source <your_venv>/bin/activate && python3 main.py
-```
-
 
 ## Project Structure
 
@@ -50,7 +47,10 @@ anomaly-monitoring
 ├── README.md
 ├── anomaly_monitoring
 │   ├── __init__.py
-│   ├── database_io.py
+│   ├── checks.py
+│   ├── database_id.py
+│   ├── google_sheets_io.py
+│   ├── slack_io.py
 │   └── utils.py
 ├── data
 │   ├── ...
@@ -68,18 +68,20 @@ anomaly-monitoring
 
 ```
 
-The `anomaly_monitoring` directory contains the main logic of the project. The `db.py` file contains the functions to interact with database, and the `utils.py` file contains useful simple functions, used in many other scripts. 
-
+The `anomaly_monitoring` directory contains the main logic of the project. 
+- File `checks.py` defines the classes for anomaly checks with methods to run checks.
+- File `database_io.py` contains the functions to interact with database (e.g. execute SQL queries).
+- File `google_sheets_io.py` contains the functions to interact with Google Sheets.
+- File `slack_io.py` contains the functions to interact with Slack (e.g. post message to channel).
+- File `utils.py` contains useful simple functions, used in many other scripts. 
 
 The `data` directory contains the demo data of transactions and orders activity - both raw .csv files and local database file.
 
 The `logs` directory contains the log file, where all the logs are written.
 
-
 The `tests` directory contains the tests for the project. Tests help to ensure that the project works as expected.
 
-Finally, the root directory. The `init_db.py` file contains the code for initializing the database with demo data. The `main.py` file contains the code for launching the whole process of performing anomaly detection and sending notifications. The `requirements.in` file contains the _primary_ project dependencies. The `requirements.txt` file contains all project dependencies (primary and sub-dependencies) with pinned versions.
-
-## TODO
-
-- Use Dagster to schedule and observe the monitoring.
+Finally, the root directory. 
+- File `init_db.py` contains the code for initializing the database with demo data. 
+- File `main.py` contains the code for launching the whole process of performing anomaly detection and sending notifications.
+- File `requirements.in` contains the _primary_ project dependencies. The `requirements.txt` file contains all project dependencies (primary and sub-dependencies) with pinned versions.

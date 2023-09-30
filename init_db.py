@@ -29,39 +29,12 @@ CREATE TABLE orders (
     merchant_id SMALLINT
 );
 
-CREATE TABLE countries (
-    country VARCHAR(3),
-    country_rn SMALLINT
-);
-
 CREATE TABLE transactions (
     id BIGINT,
     created_date TIMESTAMP,
     transaction_type VARCHAR(6),
-    merchant_id SMALLINT,
+    order_id BIGINT,
     transaction_status VARCHAR(7)
-);
-
-CREATE TABLE test_aggregate_data (
-    created_day DATE,
-    channel_id TINYINT,
-    order_type VARCHAR(5),
-    payment_source VARCHAR(100),
-    merchant_token_type VARCHAR(20),
-    is_secured BOOLEAN,
-    bin_amount_usd VARCHAR(20),
-    status VARCHAR(20),
-    error_code VARCHAR(4),
-    error_message VARCHAR,
-    bank_issuer INT,
-    card_brand VARCHAR(100),
-    card_type VARCHAR(50),
-    card_country SMALLINT,
-    ip_country SMALLINT,
-    invoice_number SMALLINT,
-    retry_number VARCHAR(15),
-    count_orders SMALLINT,
-    count_emails SMALLINT
 );
 """)
 logging.info('SUCCESS: tables were successfully created.')
@@ -70,10 +43,7 @@ logging.info('SUCCESS: tables were successfully created.')
 # UPLOAD the data in to database tables
 logging.info('STARTED: Uploading data to database')
 
-date_format = r'%Y-%m-%d %H:%M:%S.%f'
-timestamp_format = r'%m/%d/%y %-H:%M'
-
-table_names = ('countries', 'orders', 'transactions', 'test_aggregate_data')
+table_names = ('orders', 'transactions')
 for table_name in table_names:
     logging.info("STARTED: Uploading data to the table '%s'", table_name)
     csv_filename = os.path.join('data', f'{table_name}.csv')
@@ -86,10 +56,55 @@ for table_name in table_names:
         INSERT INTO {table_name}
         SELECT *
         FROM read_csv_auto('{csv_filename}',
-                           timestampformat='{timestamp_format}',
+                           timestampformat='%m/%d/%y %-H:%M',
                            header=true);
     """)
     logging.info("DONE")
+
+
+# add some syntetic cases of anomalies
+# 1. Transaction was finished after 6 days 23 hours 59 minutes 59 seconds of authorization.
+
+con.execute("""
+    insert into transactions
+           (id, created_date, transaction_type, order_id, transaction_status)
+    values
+
+    -- Case 1: settle after 6 days 23 hours 59 minutes 59 seconds, [NORMAL]
+    (8, timestamp '2023-05-15 10:02:00', 'auth', 5, 'success'),
+    (9, timestamp '2023-05-22 10:01:59', 'settle', 5, 'success'),
+
+    -- Case 2: settle after 7 days 1 second, [ANOMALY]
+    (10, timestamp '2023-05-16 10:02:00', 'auth', 6, 'success'),
+    (11, timestamp '2023-05-23 10:02:01', 'settle', 6, 'success'),  
+
+    -- Case 3: no settle, only auth, [ANOMALY]
+    (12, timestamp '2023-05-17 19:36:00', 'auth', 7, 'success'),
+
+    -- Case 4: void after 30 days, [ANOMALY]
+    (13, timestamp '2023-05-17 19:36:00', 'auth', 8, 'success'),
+    (14, timestamp '2023-06-16 19:36:00', 'void', 8, 'success'),
+
+    -- Case 5: failed settle after 5 days, [ANOMALY]
+    (15, timestamp '2023-05-17 19:36:00', 'auth', 9, 'success'),
+    (16, timestamp '2023-05-22 19:36:00', 'settle', 9, 'fail'),
+
+    -- Case 6: failed settle after 5 days,
+    --         then successful settle after 8 days, [ANOMALY]
+    (17, timestamp '2023-05-17 19:36:00', 'auth', 10, 'success'),
+    (18, timestamp '2023-05-22 19:36:00', 'settle', 10, 'fail'),
+    (19, timestamp '2023-05-25 19:36:00', 'settle', 10, 'success');
+
+    insert into orders
+              (id, created_date, merchant_id)
+    values
+            (5, timestamp '2023-05-15 10:02:00', 1),
+            (6, timestamp '2023-05-16 10:02:00', 1),
+            (7, timestamp '2023-05-17 19:36:00', 2),
+            (8, timestamp '2023-05-17 19:36:00', 4),
+            (9, timestamp '2023-05-17 19:36:00', 4),
+            (10, timestamp '2023-05-17 19:36:00', 4);
+""")
 
 # close connection
 con.close()

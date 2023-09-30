@@ -37,9 +37,10 @@ def read_sql_query(query: str) -> pd.DataFrame:
     con = open_conn()
     try:
         df = con.execute(query).fetch_df()
+        con.close()
     except Exception as e:
-        print(e)
-        return pd.DataFrame()
+        con.close()
+        raise e
     return df
 
 

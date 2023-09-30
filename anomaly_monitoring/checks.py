@@ -3,7 +3,8 @@ import logging
 import pandas as pd
 
 from .database_io import read_sql_query
-from .notifications import send_alert_slack
+from .slack_io import send_alert_slack
+from .google_sheets_io import update_google_sheets_table
 from .utils import dataframe_to_str
 
 
@@ -25,16 +26,15 @@ class AnomalyChecker:
         else:
             logging.info('[FAILED] Query result is NOT valid.'
                          'Sending alert...')
-            alert_text = self._create_alert_message(df_result)
-            self._send_alert(alert_text)
+            self._send_alert(df_result)
 
-    def _is_valid_query_result(self, df_result) -> bool:
+    def _send_alert(self, df_result: pd.DataFrame) -> None:
         pass
 
-    def _send_alert(self, text: str) -> None:
-        send_alert_slack(text)
+    def _is_valid_query_result(self, df_result: pd.DataFrame) -> bool:
+        pass
 
-    def _create_alert_message(self, df_result) -> str:
+    def _create_alert_message(self, df_result: pd.DataFrame) -> str:
         pass
 
 
@@ -47,13 +47,22 @@ class QueryEmptyChecker(AnomalyChecker):
     """
 
     def __init__(self, sql_query: str,
-                 alert_message_template: str) -> None:
+                 alert_message_template: str,
+                 alert_google_sheet_name: str) -> None:
         super().__init__(sql_query, alert_message_template)
+        self.alert_google_sheet_name = alert_google_sheet_name
+
+    def _send_alert(self, df_result: pd.DataFrame) -> None:
+        slack_message_text = self._create_alert_message(df_result)
+        send_alert_slack(slack_message_text)
+
+        update_google_sheets_table(df_to_append=df_result,
+                                   sheet_name=self.alert_google_sheet_name)
 
     def _is_valid_query_result(self, df_result: pd.DataFrame) -> bool:
         return len(df_result) == 0
 
-    def _create_alert_message(self, df_result) -> str:
+    def _create_alert_message(self, df_result: pd.DataFrame) -> str:
         text = self.alert_message_template.format(
             query_result=dataframe_to_str(df_result)
         )

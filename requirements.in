@@ -2,7 +2,12 @@ pandas
 duckdb
 pytest
 pip-tools
+# for slack integration
 slack-sdk
 certifi
 python-dotenv
+# for printing tables
 tabulate
+# for working with google sheets
+google
+gspread
