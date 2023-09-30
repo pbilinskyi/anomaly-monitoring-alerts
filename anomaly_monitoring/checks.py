@@ -4,7 +4,6 @@ import pandas as pd
 
 from .database_io import read_sql_query
 from .slack_io import send_alert_slack
-from .google_sheets_io import update_google_sheets_table
 from .utils import dataframe_to_str
 
 
@@ -47,17 +46,12 @@ class QueryEmptyChecker(AnomalyChecker):
     """
 
     def __init__(self, sql_query: str,
-                 alert_message_template: str,
-                 alert_google_sheet_name: str) -> None:
+                 alert_message_template: str) -> None:
         super().__init__(sql_query, alert_message_template)
-        self.alert_google_sheet_name = alert_google_sheet_name
 
     def _send_alert(self, df_result: pd.DataFrame) -> None:
         slack_message_text = self._create_alert_message(df_result)
         send_alert_slack(slack_message_text)
-
-        update_google_sheets_table(df_to_append=df_result,
-                                   sheet_name=self.alert_google_sheet_name)
 
     def _is_valid_query_result(self, df_result: pd.DataFrame) -> bool:
         return len(df_result) == 0

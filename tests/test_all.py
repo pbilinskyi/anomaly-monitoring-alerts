@@ -55,5 +55,5 @@ def test_google_sheet_auth():
 def test_google_sheet_update():
     """ Tests if the Google Sheet update works.
     """
-    df = pd.DataFrame({'Merchant ID': [], 'Anomaly Orders': []})
+    df = pd.DataFrame({'Order ID': []})
     update_google_sheets_table(df, sheet_name='Anomaly: unfinished orders')
