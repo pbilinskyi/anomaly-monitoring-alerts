@@ -18,10 +18,8 @@ con = open_conn()
 # CREATE tables to store data
 logging.info('Started: Creating empty tables')
 con.execute("""
-DROP TABLE IF EXISTS countries;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS transactions;
-DROP TABLE IF EXISTS test_aggregate_data;
 
 CREATE TABLE orders (
     id BIGINT,
