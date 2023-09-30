@@ -1,6 +1,8 @@
 import os
 import logging
 
+from anomaly_monitoring.checks import QueryEmptyChecker
+
 
 def main():
     # initialize logging
@@ -11,7 +13,15 @@ def main():
 
     logging.info('======== START ======== ')
     # perform anomaly detection & sending alerts
-    # ...
+
+    check_test_example = QueryEmptyChecker(
+        sql_query='SELECT * FROM countries limit 3',
+        alert_message_template=':error-alert: *Anomaly detected*'
+                               '\nDetails:\n```{query_result}```'
+    )
+
+    check_test_example.run_check()
+
     logging.info('======== END ======== ')
 
 

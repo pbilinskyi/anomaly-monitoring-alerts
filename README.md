@@ -32,6 +32,15 @@ Finally, run the following command to perform anomaly detection and send notific
 python main.py
 ```
 
+## Scheduling
+
+The anomaly monitoring checks are performed **every hour at 0th minute** via `cron`. Here's a content of cron file:
+
+```bash
+0 * * * * cd ~/path/to/your/anomaly-monitoring && source <your_venv>/bin/activate && python3 main.py
+```
+
+
 ## Project Structure
 
 The project is structured as follows:
@@ -70,3 +79,7 @@ The `logs` directory contains the log file, where all the logs are written.
 The `tests` directory contains the tests for the project. Tests help to ensure that the project works as expected.
 
 Finally, the root directory. The `init_db.py` file contains the code for initializing the database with demo data. The `main.py` file contains the code for launching the whole process of performing anomaly detection and sending notifications. The `requirements.in` file contains the _primary_ project dependencies. The `requirements.txt` file contains all project dependencies (primary and sub-dependencies) with pinned versions.
+
+## TODO
+
+- Use Dagster to schedule and observe the monitoring.

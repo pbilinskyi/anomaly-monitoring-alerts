@@ -5,3 +5,4 @@ pip-tools
 slack-sdk
 certifi
 python-dotenv
+tabulate
